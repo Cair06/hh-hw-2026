@@ -86,24 +86,25 @@ def test_register_call_strips_whitespace() -> None:
     assert active_call.receiver.id == 2
 
 
-def test_register_call_raises_on_wrong_fields_count() -> None:
-    switchboard = Switchboard()
-
-    with pytest.raises(ValueError, match="Expected 6 fields"):
-        switchboard.register_call("1,Ivan Ivanov,+79990000000")
-
-    with pytest.raises(ValueError, match="Expected 6 fields"):
-        switchboard.register_call("")
-
-
-@pytest.mark.parametrize("raw_call, match", [
-    ("abc,Ivan Ivanov,+79990000000,2,John Smith,+15551234567", "User id must be an integer"),
-    ("1,Ivan Ivanov,+79990000000,abc,John Smith,+15551234567", "User id must be an integer"),
+@pytest.mark.parametrize("raw_call", [
+    "1,Ivan Ivanov,+79990000000",
+    "",
 ])
-def test_register_call_raises_on_non_numeric_id(raw_call: str, match: str) -> None:
+def test_register_call_raises_on_wrong_fields_count(raw_call: str) -> None:
     switchboard = Switchboard()
 
-    with pytest.raises(ValueError, match=match):
+    with pytest.raises(ValueError, match="Expected 6 fields"):
+        switchboard.register_call(raw_call)
+
+
+@pytest.mark.parametrize("raw_call", [
+    "abc,Ivan Ivanov,+79990000000,2,John Smith,+15551234567",
+    "1,Ivan Ivanov,+79990000000,abc,John Smith,+15551234567",
+])
+def test_register_call_raises_on_non_numeric_id(raw_call: str) -> None:
+    switchboard = Switchboard()
+
+    with pytest.raises(ValueError, match="User id must be an integer"):
         switchboard.register_call(raw_call)
 
 

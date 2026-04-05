@@ -96,35 +96,30 @@ def test_register_call_raises_on_wrong_fields_count() -> None:
         switchboard.register_call("")
 
 
-def test_register_call_raises_on_non_numeric_id() -> None:
+@pytest.mark.parametrize("raw_call, match", [
+    ("abc,Ivan Ivanov,+79990000000,2,John Smith,+15551234567", "User id must be an integer"),
+    ("1,Ivan Ivanov,+79990000000,abc,John Smith,+15551234567", "User id must be an integer"),
+])
+def test_register_call_raises_on_non_numeric_id(raw_call: str, match: str) -> None:
     switchboard = Switchboard()
 
-    with pytest.raises(ValueError, match="User id must be an integer"):
-        switchboard.register_call(
-            "abc,Ivan Ivanov,+79990000000,2,John Smith,+15551234567"
-        )
-
-    with pytest.raises(ValueError, match="User id must be an integer"):
-        switchboard.register_call(
-            "1,Ivan Ivanov,+79990000000,abc,John Smith,+15551234567"
-        )
+    with pytest.raises(ValueError, match=match):
+        switchboard.register_call(raw_call)
 
 
-def test_register_call_raises_on_phone_without_plus() -> None:
-    switchboard = Switchboard()
-
-    with pytest.raises(ValueError, match="Invalid phone number format"):
-        switchboard.register_call(
-            "1,Ivan Ivanov,79990000000,2,John Smith,+15551234567"
-        )
-
-
-def test_register_call_raises_on_phone_with_letters() -> None:
+@pytest.mark.parametrize("phone", [
+    "79990000000",
+    "+7AAA000000",
+    "+1234567890123456",
+    "+123456",
+    "+abc1234567",
+])
+def test_register_call_raises_on_invalid_phone_format(phone: str) -> None:
     switchboard = Switchboard()
 
     with pytest.raises(ValueError, match="Invalid phone number format"):
         switchboard.register_call(
-            "1,Ivan Ivanov,+7AAA000000,2,John Smith,+15551234567"
+            f"1,Ivan Ivanov,{phone},2,John Smith,+15551234567"
         )
 
 
@@ -141,25 +136,12 @@ def test_register_call_id_is_stored_as_int() -> None:
     assert active_call.receiver.id == 99
 
 
-def test_register_call_raises_on_empty_name() -> None:
+@pytest.mark.parametrize("raw_call", [
+    "1,,+79990000000,2,John Smith,+15551234567",
+    "1,Ivan Ivanov,+79990000000,2,,+15551234567",
+])
+def test_register_call_raises_on_empty_name(raw_call: str) -> None:
     switchboard = Switchboard()
 
     with pytest.raises(ValueError, match="User fullname cannot be empty"):
-        switchboard.register_call(
-            "1,,+79990000000,2,John Smith,+15551234567"
-        )
-
-    with pytest.raises(ValueError, match="User fullname cannot be empty"):
-        switchboard.register_call(
-            "1,Ivan Ivanov,+79990000000,2,,+15551234567"
-        )
-
-
-@pytest.mark.parametrize("phone", ["+1234567890123456", "+123456", "+abc1234567"])
-def test_register_call_raises_on_invalid_phone_format(phone: str) -> None:
-    switchboard = Switchboard()
-
-    with pytest.raises(ValueError, match="Invalid phone number format"):
-        switchboard.register_call(
-            f"1,Ivan Ivanov,{phone},2,John Smith,+15551234567"
-        )
+        switchboard.register_call(raw_call)

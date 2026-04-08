@@ -8,6 +8,8 @@ from app.users import User, LocalUser, ForeignUser
 
 LOCAL_PHONE_PREFIX = "+7"
 _PHONE_RE = re.compile(r'\+\d{7,15}')
+# at least two words (first + last name), letters only, space or hyphen as separator
+_FULLNAME_RE = re.compile(r"[^\W\d_]+(?:[\s\-][^\W\d_]+)+", re.UNICODE)
 
 
 @dataclass(slots=True)
@@ -58,6 +60,9 @@ class Switchboard:
 
         if not _PHONE_RE.fullmatch(phone):
             raise ValueError(f"Invalid phone number format: '{phone}'")
+
+        if fullname and not _FULLNAME_RE.fullmatch(fullname):
+            raise ValueError(f"Invalid fullname: '{fullname}'")
 
         if phone.startswith(LOCAL_PHONE_PREFIX):
             return LocalUser(uid, fullname, phone)

@@ -89,6 +89,7 @@ def test_register_call_strips_whitespace() -> None:
 @pytest.mark.parametrize("raw_call", [
     "1,Ivan Ivanov,+79990000000",
     "",
+    "1,Ivan Ivanov,+79990000000,2,John Smith,+15551234567,extra",
 ])
 def test_register_call_raises_on_wrong_fields_count(raw_call: str) -> None:
     switchboard = Switchboard()
@@ -145,4 +146,15 @@ def test_register_call_raises_on_empty_name(raw_call: str) -> None:
     switchboard = Switchboard()
 
     with pytest.raises(ValueError, match="User fullname cannot be empty"):
+        switchboard.register_call(raw_call)
+
+
+@pytest.mark.parametrize("raw_call", [
+    "1,123 456,+79990000000,2,John Smith,+15551234567",
+    "1,Ivan Ivanov,+79990000000,2,789 000,+15551234567",
+])
+def test_register_call_raises_on_numeric_fullname(raw_call: str) -> None:
+    switchboard = Switchboard()
+
+    with pytest.raises(ValueError, match="Invalid fullname"):
         switchboard.register_call(raw_call)
